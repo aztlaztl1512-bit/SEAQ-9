@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حقيبة القدرات (الخطأ السياقي 9) - أ/ عبدالعزيز الفيفي</title>
+    <style>
+        :root { 
+            --primary: #1a237e; --secondary: #37474f; --accent: #ffab00; 
+            --bg: #f4f7f6; --white: #ffffff; --correct: #2e7d32; --wrong: #c62828;
+        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; line-height: 1.6; color: #333; font-weight: 400; }
+        .quiz-card { background: var(--white); width: 100%; max-width: 950px; border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border-top: 15px solid var(--primary); padding: 30px; position: relative; }
+        .header { text-align: center; border-bottom: 2px solid #eee; margin-bottom: 25px; padding-bottom: 15px; }
+        .info-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .student-badge { background: #e8eaf6; color: var(--primary); padding: 10px 20px; border-radius: 50px; font-weight: 500; border: 2px solid var(--primary); font-size: 0.9rem; }
+        .timer-container { background: var(--secondary); color: white; padding: 10px 25px; border-radius: 50px; font-weight: 500; font-size: 1rem; transition: all 0.3s ease; }
+        .timer-pulse { background: var(--wrong) !important; animation: pulse-animation 0.6s infinite alternate; }
+        @keyframes pulse-animation { from { transform: scale(1); } to { transform: scale(1.1); } }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .option { padding: 16px; border: 2px solid #f0f0f0; border-radius: 15px; cursor: pointer; transition: 0.3s; font-weight: 500; background: #fafafa; font-size: 1rem; text-align: center; }
+        .option:hover { border-color: var(--primary); background: #fdf7ff; transform: translateY(-2px); }
+        .correct-opt { background: var(--correct) !important; color: white; border-color: var(--correct) !important; }
+        .wrong-opt { background: var(--wrong) !important; color: white; border-color: var(--wrong) !important; }
+        .feedback-box { margin-top: 20px; padding: 25px; border-radius: 15px; background: #fffde7; border-right: 10px solid var(--accent); display: none; font-size: 1rem; }
+        .btn { background: var(--secondary); color: white; padding: 16px 45px; border: none; border-radius: 12px; cursor: pointer; font-size: 1.1rem; font-weight: 500; transition: 0.3s; }
+        .btn:hover { background: var(--primary); }
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; font-size: 0.85rem; }
+        .result-table th { background: var(--primary); color: white; padding: 12px; }
+        .result-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .hidden { display: none; }
+        .locked { text-align: center; color: red; padding: 50px; border: 5px solid red; border-radius: 20px; background: white; }
+    </style>
+</head>
+<body id="main-body">
+
+<div class="quiz-card" id="quiz-container">
+    <div class="header">
+        <h3 id="author-name">✨ أ / عبدالعزيز الفيفي - ثانوية الأمير عبدالمجيد 🎓</h3>
+        <h2 id="quiz-title">الخطأ السياقي - النموذج الماسي (9)</h2>
+    </div>
+
+    <div id="start-page" style="text-align: center;">
+        <p style="font-size: 1.1rem; margin-bottom: 20px;">⏱️ 45 ثانية للسؤال | 🔀 خلط عشوائي كامل | 💡 تسريبات محدثة</p>
+        <input type="text" id="studentNameInput" placeholder="أدخل اسمك الثلاثي لبدء التحدي..." style="width: 75%; padding: 15px; border-radius: 10px; border: 2px solid #ccc; text-align: center; font-size: 1rem; margin-bottom: 20px;">
+        <br><button class="btn" onclick="startQuizAction()">ابدأ الاختبار 🚀</button>
+    </div>
+
+    <div id="quiz-page" class="hidden">
+        <div class="info-bar">
+            <div id="current-student-display" class="student-badge"></div>
+            <div id="timer-box" class="timer-container">⏳ المتبقي: <span id="timer-val">45</span> ثانية</div>
+        </div>
+        <div id="progress-text" style="font-weight: 500; color: var(--primary); margin-bottom: 10px; font-size: 0.9rem;"></div>
+        <div id="question-display" style="font-size: 1.4rem; text-align: right; margin: 25px 0; font-weight: 500; color: #333; background: #f9f9f9; padding: 25px; border-radius: 20px; border: 1px solid #eee;"></div>
+        <div id="options-container" class="options-grid"></div>
+        <div id="feedback-display" class="feedback-box"></div>
+        <div style="text-align: center; margin-top: 30px;">
+            <button id="next-btn" class="btn hidden" onclick="loadNextQuestion()">السؤال التالي ⮕</button>
+        </div>
+    </div>
+
+    <div id="result-page" class="hidden">
+        <div style="text-align: center; padding: 25px; background: #e8eaf6; border-radius: 20px; border: 3px solid var(--primary); margin-bottom: 25px;">
+            <h1 id="score-display" style="color: var(--primary); margin:0; font-size: 2.5rem;"></h1>
+            <h2 id="final-student-name" style="color: var(--secondary); margin-top: 10px; font-size: 1.2rem;"></h2>
+        </div>
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>السؤال</th>
+                    <th>إجابتك</th>
+                    <th>الصحيحة</th>
+                </tr>
+            </thead>
+            <tbody id="summary-body"></tbody>
+        </table>
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn" onclick="location.reload()">إعادة الاختبار 🔀</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function protect() {
+        const teacher = "عبدالعزيز الفيفي";
+        setInterval(() => {
+            const auth = document.getElementById('author-name');
+            if (!auth || !auth.innerText.includes(teacher)) {
+                document.getElementById('main-body').innerHTML = '<div class="locked"><h1>⚠️ خرق حماية الملكية</h1><p>هذا العمل ملك للأستاذ عبدالعزيز الفيفي.</p></div>';
+            }
+        }, 3000);
+    })();
+
+    const masterPool = [
+        { q: "الأمم تمر بلحظات حرجة، والصمود هو الذي يحدد قوتها أو تراجعها.", opts: ["الأمم", "حرجة", "الصمود", "تراجعها"], a: "تراجعها", explain: "الكلمة الخاطئة (تراجعها)؛ لأن السياق يقارن بين خيارين عند الصمود، فالتصحيح: (أو فنائها/سقوطها) لأن القوة عكس التراجع وليس الصمود." },
+        { q: "من غفل عن نفسه خسر، ومن صبر على عدوه فاز.", opts: ["غفل", "خسر", "صبر", "فاز"], a: "صبر", explain: "الكلمة الخاطئة (صبر)؛ لأن الحكمة التربوية تركز على مجاهدة النفس، فالتصحيح: (ومن غلب هواه فاز)." },
+        { q: "الإنجازات الكبيرة لا تتحقق إلا بالتعاون، والنجاح الفردي هو أساس الحضارات.", opts: ["الكبيرة", "التعاون", "الفردي", "الحضارات"], a: "الفردي", explain: "الكلمة الخاطئة (الفردي)؛ لأن الحضارات تُبنى على العمل (الجماعي) والتعاون كما ورد في صدر الجملة." },
+        { q: "الابتسامة لغة مفهومة، وهي أقصر طريق بين شخصين متباعدين.", opts: ["مفهومة", "أقصر", "شخصين", "متباعدين"], a: "متباعدين", explain: "الكلمة الخاطئة (متباعدين)؛ فالتصحيح المنطقي هو (متخاصمين) لبيان أثر الابتسامة في الصلح." },
+        { q: "العلاقات الإنسانية تبنى على المصلحة، والوفاء هو مجرد خيال.", opts: ["الإنسانية", "المصلحة", "الوفاء", "خيال"], a: "خيال", explain: "الكلمة الخاطئة (خيال)؛ لأن العلاقات السامية تبنى على الوفاء، والتصحيح (والوفاء هو أساسها)." },
+        { q: "الجهل خير من علم يضر صاحبه.", opts: ["الجهل", "خير", "يضر", "صاحبه"], a: "الجهل", explain: "الكلمة الخاطئة (الجهل)؛ فالتصحيح (التواضع) أو (التقوى)، لأن الجهل ليس خيراً في أي حال." },
+        { q: "من أراد أن يكون صادقاً، فليصدق في أفعاله قبل أقواله السيئة.", opts: ["صادقاً", "أفعاله", "أقواله", "السيئة"], a: "السيئة", explain: "الكلمة الخاطئة (السيئة)؛ فالصادق يصدق في أقواله (الحسنة) أو (الجميلة) لتطابق أفعاله." },
+        { q: "القمة مكان مزدحم، لذا يجب عليك التميز لتصل إليها.", opts: ["القمة", "مزدحم", "التميز", "تصل"], a: "مزدحم", explain: "الكلمة الخاطئة (مزدحم)؛ فالمعروف أن القمة (خالية) ولا يصلها إلا المتميزون، أما القاع فهو المزدحم." },
+        { q: "الإرادة هي المحرك الذي يدفعنا للخلف عندما نواجه الشدائد.", opts: ["الإرادة", "المحرك", "للخلف", "الشدائد"], a: "للخلف", explain: "الكلمة الخاطئة (للخلف)؛ فالإرادة تدفعنا (للأمام) أو للمواجهة وليس للانسحاب." },
+        { q: "التواضع يزيد صاحبه رفعة، والتكبر يزيد صاحبه ذلاً وعزاً.", opts: ["التواضع", "رفعة", "ذلاً", "وعزاً"], a: "وعزاً", explain: "الكلمة الخاطئة (وعزاً)؛ فالتكبر والذل لا يجتمعان مع العز، التصحيح: (مهانة)." },
+        { q: "من يطلب العلم للجاه، فقد ضل عن طريق الحق والباطل.", opts: ["العلم", "للجاه", "ضل", "والباطل"], a: "والباطل", explain: "الكلمة الخاطئة (والباطل)؛ فمن يطلب العلم لغير الله فقد ضل عن طريق (الحق) والهدى." },
+        { q: "الوقت كالسيف، إن لم تقطعه قطعك بالفرح.", opts: ["الوقت", "تقطعه", "قطعك", "بالفرح"], a: "بالفرح", explain: "الكلمة الخاطئة (بالفرح)؛ فالتصحيح هو (بالندم) أو (بالحسرة)." },
+        { q: "العمل عبادة، والكسل سعادة تمنع الرزق.", opts: ["عبادة", "الكسل", "سعادة", "الرزق"], a: "سعادة", explain: "الكلمة الخاطئة (سعادة)؛ فمن المستحيل أن يكون الكسل سعادة وهو يمنع الرزق، التصحيح (آفة)." },
+        { q: "من حفر حفرة لأخيه، وقع في فخها سعيداً.", opts: ["حفر", "حفرة", "فخها", "سعيداً"], a: "سعيداً", explain: "الكلمة الخاطئة (سعيداً)؛ فمن يقع في شر أعماله يكون (خاسراً) أو نادماً." },
+        { q: "الكلمة الطيبة تفتح الأبواب المشرعة.", opts: ["الكلمة", "الطيبة", "تفتح", "المشرعة"], a: "المشرعة", explain: "الكلمة الخاطئة (المشرعة)؛ لأن الأبواب المشرعة مفتوحة أصلاً، التصحيح (المغلقة)." },
+        { q: "من جد وجد، ومن زرع حصد الندم.", opts: ["جد", "وجد", "زرع", "الندم"], a: "الندم", explain: "الكلمة الخاطئة (الندم)؛ فمن يزرع (يحصد) الثمار والنجاح." },
+        { q: "العقل زينة الإنسان، والجهل زينة الحيوان.", opts: ["العقل", "زينة", "الجهل", "الحيوان"], a: "زينة (الثانية)", explain: "الكلمة الخاطئة (زينة)؛ فالجهل (نقيصة) أو عيب ولا يكون زينة أبداً." },
+        { q: "الحياة قطار سريع، والفرص محطات لا تعود أبداً.", opts: ["الحياة", "سريع", "الفرص", "أبداً"], a: "أبداً", explain: "الكلمة الخاطئة (أبداً)؛ فالمقصود أن الفرص قد (تتكرر) لكنها تضيع إذا لم تستغل، والتصحيح لغوي هنا." },
+        { q: "التعلم في الصغر كالغرس في الماء.", opts: ["التعلم", "الصغر", "كالغرس", "الماء"], a: "الماء", explain: "الكلمة الخاطئة (الماء)؛ فالحكمة تقول كالنقش في (الحجر) لبيان الرسوخ." },
+        { q: "من يطلب المعالي بلا سهر، أدركها سريعاً.", opts: ["طلب", "المعالي", "أدركها", "سريعاً"], a: "سريعاً", explain: "الكلمة الخاطئة (سريعاً)؛ فمن لا يتعب (لن يدركها) أو سيظل مكانه." },
+        { q: "القناعة كنز، والطمع فقر دائم ومريح.", opts: ["القناعة", "كنز", "فقر", "ومريح"], a: "ومريح", explain: "الكلمة الخاطئة (ومريح)؛ فالطمع فقر (مذل) أو متعب للنفس." },
+        { q: "الصدق منجاة، والكذب مهلكة تجلب الفوز.", opts: ["الصدق", "منجاة", "مهلكة", "الفوز"], a: "الفوز", explain: "الكلمة الخاطئة (الفوز)؛ فالمهلكة تجلب (الخسران) أو السقوط." },
+        { q: "الأخلاق هي العنوان الذي يقرأه الناس في ملامحك القبيحة.", opts: ["الأخلاق", "العنوان", "يقرأه", "القبيحة"], a: "القبيحة", explain: "الكلمة الخاطئة (القبيحة)؛ فالأخلاق تنعكس في الملامح (الطيبة) أو التصرفات." },
+        { q: "النجاح يبدأ بخطوة واحدة، والفشل يبدأ بألف تراجع.", opts: ["النجاح", "بخطوة", "الفشل", "تراجع"], a: "تراجع", explain: "الكلمة الخاطئة (تراجع)؛ فالتصحيح (خطوة) أيضاً، لبيان أن كل شيء يبدأ صغيراً." },
+        { q: "العلم يرفع بيوتاً لا عماد لها، والجهل يهدم بيوت العز والكرم القوية.", opts: ["يرفع", "عماد", "العز", "القوية"], a: "القوية", explain: "الجملة سليمة سياقياً، والخطأ قد يوضع في (يرفع) إذا استبدلت بـ (يخفض)." }
+    ];
+
+    let currentIdx = 0, score = 0, timer, timeLeft = 45, logs = [], activeQs = [], sName = "";
+
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function startQuizAction() {
+        const input = document.getElementById('studentNameInput').value;
+        if (!input.trim() || input.length < 3) { alert("يرجى إدخال الاسم الثلاثي لبدء التحدي"); return; }
+        sName = input;
+        activeQs = shuffle([...masterPool]); 
+        document.getElementById('start-page').classList.add('hidden');
+        document.getElementById('quiz-page').classList.remove('hidden');
+        document.getElementById('current-student-display').innerText = "👤 المتحدي: " + sName;
+        loadQuestion();
+    }
+
+    function startTimer() {
+        clearInterval(timer); timeLeft = 45;
+        const tBox = document.getElementById('timer-box');
+        const tVal = document.getElementById('timer-val');
+        tBox.classList.remove('timer-pulse'); tVal.innerText = timeLeft;
+        timer = setInterval(() => {
+            timeLeft--; tVal.innerText = timeLeft;
+            if (timeLeft <= 5) tBox.classList.add('timer-pulse');
+            if (timeLeft <= 0) { clearInterval(timer); handleAns(null, null); }
+        }, 1000);
+    }
+
+    function loadQuestion() {
+        if (currentIdx >= activeQs.length) return endQuiz();
+        const q = activeQs[currentIdx];
+        document.getElementById('progress-text').innerText = `سؤال ${currentIdx + 1} من ${activeQs.length}`;
+        document.getElementById('question-display').innerText = q.q;
+        document.getElementById('feedback-display').style.display = 'none';
+        document.getElementById('next-btn').classList.add('hidden');
+        const box = document.getElementById('options-container'); box.innerHTML = '';
+        
+        shuffle([...q.opts]).forEach(opt => {
+            const div = document.createElement('div'); div.className = 'option'; div.innerText = opt;
+            div.onclick = () => handleAns(opt, div); box.appendChild(div);
+        });
+        startTimer();
+    }
+
+    function handleAns(sel, el) {
+        clearInterval(timer);
+        document.getElementById('timer-box').classList.remove('timer-pulse');
+        const q = activeQs[currentIdx];
+        const opts = document.querySelectorAll('.option');
+        opts.forEach(o => o.onclick = null);
+        let isCorrect = (sel === q.a);
+        if (isCorrect) { if(el) el.classList.add('correct-opt'); score++; }
+        else { if(el) el.classList.add('wrong-opt'); opts.forEach(o => { if(o.innerText === q.a) o.classList.add('correct-opt'); }); }
+        
+        const fb = document.getElementById('feedback-display');
+        fb.style.display = 'block';
+        fb.innerHTML = `
+            <div style="color: ${isCorrect ? 'green' : 'red'}; font-weight: bold; margin-bottom: 10px;">
+                ${isCorrect ? '✅ إجابة صحيحة' : '❌ إجابة خاطئة'}
+            </div>
+            <strong>🔍 التوضيح المقنع:</strong><br>
+            ${q.explain}<br><br>
+            <small>✨ أ / عبدالعزيز الفيفي - ثانوية الأمير عبدالمجيد 🎓</small>
+        `;
+        document.getElementById('next-btn').classList.remove('hidden');
+        logs.push({ q: q.q, user: sel || "انتهى الوقت ⏰", correct: q.a });
+    }
+
+    function loadNextQuestion() { currentIdx++; loadQuestion(); }
+
+    function endQuiz() {
+        document.getElementById('quiz-page').classList.add('hidden');
+        document.getElementById('result-page').classList.remove('hidden');
+        document.getElementById('score-display').innerText = `الدرجة النهائية: ${score} من ${activeQs.length}`;
+        document.getElementById('final-student-name').innerText = `بطل التحدي: ${sName}`;
+        const tbody = document.getElementById('summary-body');
+        logs.forEach(l => {
+            tbody.innerHTML += `<tr><td>${l.q}</td><td style="color:${l.user === l.correct ? 'green':'red'}">${l.user}</td><td style="color:green; font-weight:bold">${l.correct}</td></tr>`;
+        });
+    }
+</script>
+</body>
+</html>
